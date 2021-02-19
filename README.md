@@ -26,28 +26,10 @@ The third step is validation if token is not expired. Additionally it is worth t
 Once you have cloned repository, make sure that composer dependencies are installed running `composer install -o`.
 
 ```php
-$validationData = new ValidationData();
-$validationData->setIssuer('https://appleid.apple.com');
-$validationData->setAudience('com.azimo');
-
 $appleJwtFetchingService = new Auth\Service\AppleJwtFetchingService(
-    new Auth\Jwt\JwtParser(new Parser()),
-    new Auth\Jwt\JwtVerifier(
-        new Api\AppleApiClient(
-            new GuzzleHttp\Client(
-                [
-                    'base_uri'        => 'https://appleid.apple.com',
-                    'timeout'         => 5,
-                    'connect_timeout' => 5,
-                ]
-            ),
-            new Api\Factory\ResponseFactory()
-        ),
-        new RSA(),
-        new Sha256()
-    ),
-    new Auth\Jwt\JwtValidator($validationData),
-    new Auth\Factory\AppleJwtStructFactory()
+    'https://appleid.apple.com', //Apple uri
+    'https://appleid.apple.com', //Issuer
+    'com.azimo' //Audience
 );
 
 $appleJwtFetchingService->getJwtPayload('your.identity.token');
