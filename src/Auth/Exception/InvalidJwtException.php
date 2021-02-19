@@ -1,9 +1,11 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Azimo\Apple\Auth\Exception;
 
 use InvalidArgumentException;
 
-class InvalidJwtException extends InvalidArgumentException implements AppleExceptionInterface
+final class InvalidJwtException extends InvalidArgumentException implements AppleExceptionInterface
 {
 }

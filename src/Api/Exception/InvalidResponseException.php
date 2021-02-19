@@ -1,9 +1,11 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Azimo\Apple\Api\Exception;
 
 use InvalidArgumentException;
 
-class InvalidResponseException extends InvalidArgumentException implements AppleApiExceptionInterface
+final class InvalidResponseException extends InvalidArgumentException implements AppleApiExceptionInterface
 {
 }

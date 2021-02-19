@@ -1,13 +1,13 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Azimo\Apple\Api\Enum;
 
-class CryptographicAlgorithmEnum
+final class CryptographicAlgorithmEnum
 {
     public const KID_86D88KF = '86D88Kf';
-
     public const KID_EXAUNML = 'eXaunmL';
-
     public const KID_YUYXOY = 'YuyXoY';
 
     public static function supportedAlgorithms(): array

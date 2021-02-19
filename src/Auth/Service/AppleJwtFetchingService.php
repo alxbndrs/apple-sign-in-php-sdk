@@ -1,44 +1,41 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Azimo\Apple\Auth\Service;
 
+use Azimo\Apple\Api\AppleApiClient;
+use Azimo\Apple\Api\Factory\ResponseFactory;
 use Azimo\Apple\Auth\Exception;
 use Azimo\Apple\Auth\Factory\AppleJwtStructFactory;
 use Azimo\Apple\Auth\Jwt;
 use Azimo\Apple\Auth\Struct\JwtPayload;
+use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
+use Lcobucci\JWT\Encoding\JoseEncoder;
+use Lcobucci\JWT\Signer\Rsa\Sha256;
+use Lcobucci\JWT\Token\Parser;
+use Lcobucci\JWT\Validation\Constraint\IssuedBy;
+use Lcobucci\JWT\Validation\Constraint\PermittedFor;
+use Lcobucci\JWT\Validation\Validator;
+use phpseclib\Crypt\RSA;
 
-class AppleJwtFetchingService
+final class AppleJwtFetchingService implements AppleJwtFetchingServiceInterface
 {
-    /**
-     * @var Jwt\JwtParser
-     */
-    private $parser;
-
-    /**
-     * @var Jwt\JwtVerifier
-     */
-    private $verifier;
-
-    /**
-     * @var Jwt\JwtValidator
-     */
-    private $validator;
-
-    /**
-     * @var AppleJwtStructFactory
-     */
-    private $factory;
+    private Jwt\JwtParser $parser;
+    private Jwt\JwtVerifier $verifier;
+    private Jwt\JwtValidator $validator;
+    private AppleJwtStructFactory $factory;
 
     public function __construct(
-        Jwt\JwtParser $parser,
-        Jwt\JwtVerifier $verifier,
-        Jwt\JwtValidator $validator,
-        AppleJwtStructFactory $factory
+        string $appleUri,
+        string $issuer,
+        string $audience
     ) {
-        $this->parser = $parser;
-        $this->verifier = $verifier;
-        $this->validator = $validator;
-        $this->factory = $factory;
+        $this->parser = $this->initParser();
+        $this->verifier = $this->initVerifier($appleUri);
+        $this->validator = $this->initValidator($issuer, $audience);
+        $this->factory = new AppleJwtStructFactory();
     }
 
     /**
@@ -46,7 +43,6 @@ class AppleJwtFetchingService
      * @throws Exception\InvalidJwtException
      * @throws Exception\KeysFetchingFailedException
      * @throws Exception\MissingClaimException
-     * @throws Exception\NotSignedTokenException
      * @throws Exception\ValidationFailedException
      * @throws Exception\VerificationFailedException
      */
@@ -68,5 +64,40 @@ class AppleJwtFetchingService
         }
 
         return $this->factory->createJwtPayloadFromToken($parsedJwt);
+    }
+
+    private function initParser(): Jwt\JwtParser
+    {
+        return new Jwt\JwtParser(new Parser(new JoseEncoder()));
+    }
+
+    private function initVerifier(string $appleUri): Jwt\JwtVerifier
+    {
+        return new Jwt\JwtVerifier(
+            new AppleApiClient($this->initHttpClient($appleUri), new ResponseFactory()),
+            new Validator(),
+            new RSA(),
+            new Sha256()
+        );
+    }
+
+    private function initValidator(string $issuer, string $audience): Jwt\JwtValidator
+    {
+        return new Jwt\JwtValidator(
+            new Validator(),
+            [
+                new IssuedBy($issuer),
+                new PermittedFor($audience),
+            ]
+        );
+    }
+
+    private function initHttpClient(string $appleUri): ClientInterface
+    {
+        return new Client([
+            'base_uri' => $appleUri,
+            'timeout'         => 5,
+            'connect_timeout' => 5,
+        ]);
     }
 }

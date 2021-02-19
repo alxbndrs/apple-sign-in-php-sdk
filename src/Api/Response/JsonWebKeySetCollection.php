@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Azimo\Apple\Api\Response;
 
@@ -10,7 +12,7 @@ class JsonWebKeySetCollection
     /**
      * @var JsonWebKeySet[]
      */
-    private $authKeys;
+    private array $authKeys;
 
     public function __construct(array $authKeys)
     {

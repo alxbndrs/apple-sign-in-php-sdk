@@ -1,24 +1,22 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Azimo\Apple\Api;
 
 use Azimo\Apple\Api\Exception\PublicKeyFetchingFailedException;
 use Azimo\Apple\Api\Factory\ResponseFactory;
-use GuzzleHttp;
+use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Utils;
 
-class AppleApiClient
+final class AppleApiClient implements AppleApiClientInterface
 {
-    /**
-     * @var GuzzleHttp\ClientInterface
-     */
-    private $httpClient;
+    private ClientInterface $httpClient;
+    private ResponseFactory $responseFactory;
 
-    /**
-     * @var ResponseFactory
-     */
-    private $responseFactory;
-
-    public function __construct(GuzzleHttp\ClientInterface $httpClient, ResponseFactory $responseFactory)
+    public function __construct(ClientInterface $httpClient, ResponseFactory $responseFactory)
     {
         $this->httpClient = $httpClient;
         $this->responseFactory = $responseFactory;
@@ -27,14 +25,14 @@ class AppleApiClient
     public function getAuthKeys(): Response\JsonWebKeySetCollection
     {
         try {
-            $response = $this->httpClient->send(new GuzzleHttp\Psr7\Request('GET', 'auth/keys'));
-        } catch (GuzzleHttp\Exception\GuzzleException $exception) {
+            $response = $this->httpClient->send(new Request('GET', 'auth/keys'));
+        } catch (GuzzleException $exception) {
             throw new PublicKeyFetchingFailedException($exception->getMessage(), $exception->getCode(), $exception);
         }
 
         try {
             return $this->responseFactory->createFromArray(
-                GuzzleHttp\json_decode($response->getBody()->getContents(), true)
+                Utils::jsonDecode($response->getBody()->getContents(), true)
             );
         } catch (\InvalidArgumentException $exception) {
             throw new Exception\InvalidResponseException(

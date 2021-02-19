@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Azimo\Apple\Auth\Jwt;
 
@@ -9,10 +11,7 @@ use RuntimeException;
 
 class JwtParser
 {
-    /**
-     * @var JWT\Parser
-     */
-    private $jwtParser;
+    private JWT\Parser $jwtParser;
 
     public function __construct(JWT\Parser $jwtParser)
     {

@@ -1,69 +1,30 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Azimo\Apple\Auth\Struct;
 
-class JwtPayload
+use DateTimeImmutable;
+
+final class JwtPayload
 {
-    /**
-     * @var string
-     */
-    private $iss;
-
-    /**
-     * @var string
-     */
-    private $aud;
-
-    /**
-     * @var int
-     */
-    private $exp;
-
-    /**
-     * @var int
-     */
-    private $iat;
-
-    /**
-     * @var string
-     */
-    private $sub;
-
-    /**
-     * @var string
-     */
-    private $cHash;
-
-    /**
-     * @var string
-     */
-    private $email;
-
-    /**
-     * @var bool
-     */
-    private $emailVerified;
-
-    /**
-     * @var bool
-     */
-    private $isPrivateEmail;
-
-    /**
-     * @var int
-     */
-    private $authTime;
-
-    /**
-     * @var bool
-     */
-    private $nonceSupported;
+    private string $iss;
+    private array $aud;
+    private DateTimeImmutable $exp;
+    private DateTimeImmutable $iat;
+    private string $sub;
+    private string $cHash;
+    private string $email;
+    private bool $emailVerified;
+    private bool $isPrivateEmail;
+    private int $authTime;
+    private bool $nonceSupported;
 
     public function __construct(
         string $iss,
-        string $aud,
-        int $exp,
-        int $iat,
+        array $aud,
+        DateTimeImmutable $exp,
+        DateTimeImmutable $iat,
         string $sub,
         string $cHash,
         string $email,
@@ -90,17 +51,17 @@ class JwtPayload
         return $this->iss;
     }
 
-    public function getAud(): string
+    public function getAud(): array
     {
         return $this->aud;
     }
 
-    public function getExp(): int
+    public function getExp(): DateTimeImmutable
     {
         return $this->exp;
     }
 
-    public function getIat(): int
+    public function getIat(): DateTimeImmutable
     {
         return $this->iat;
     }

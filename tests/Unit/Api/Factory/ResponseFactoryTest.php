@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Azimo\Apple\Tests\Unit\Api\Factory;
 
@@ -8,12 +10,9 @@ use Azimo\Apple\Api\Factory\ResponseFactory;
 use Azimo\Apple\Api\Response\JsonWebKeySetCollection;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
 
-class ResponseFactoryTest extends MockeryTestCase
+final class ResponseFactoryTest extends MockeryTestCase
 {
-    /**
-     * @var ResponseFactory
-     */
-    private $responseFactory;
+    private ResponseFactory $responseFactory;
 
     protected function setUp(): void
     {

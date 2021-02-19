@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Azimo\Apple\Tests\Unit\Api;
 
@@ -9,22 +11,11 @@ use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
 use Psr\Http\Message\RequestInterface;
 
-class AppleApiClientTest extends MockeryTestCase
+final class AppleApiClientTest extends MockeryTestCase
 {
-    /**
-     * @var Api\AppleApiClient
-     */
-    private $client;
-
-    /**
-     * @var GuzzleHttp\Client|\Mockery\MockInterface
-     */
-    private $httpClientMock;
-
-    /**
-     * @var Api\Factory\ResponseFactory|\Mockery\MockInterface
-     */
-    private $responseFactoryMock;
+    private Api\AppleApiClient $client;
+    private GuzzleHttp\Client $httpClientMock;
+    private Api\Factory\ResponseFactory $responseFactoryMock;
 
     protected function setUp(): void
     {

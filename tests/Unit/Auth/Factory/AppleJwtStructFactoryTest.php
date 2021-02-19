@@ -1,19 +1,17 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Azimo\Apple\Tests\Unit\Auth\Factory;
 
-use Azimo\Apple\Auth\Exception\MissingClaimException;
 use Azimo\Apple\Auth\Factory\AppleJwtStructFactory;
 use Azimo\Apple\Auth\Struct\JwtPayload;
-use Lcobucci\JWT\Claim\EqualsTo;
 use Lcobucci\JWT\Token;
+use DateTimeImmutable;
 
-class AppleJwtStructFactoryTest extends \Mockery\Adapter\Phpunit\MockeryTestCase
+final class AppleJwtStructFactoryTest extends \Mockery\Adapter\Phpunit\MockeryTestCase
 {
-    /**
-     * @var AppleJwtStructFactory
-     */
-    private $appleJwtStructFactory;
+    private AppleJwtStructFactory $appleJwtStructFactory;
 
     protected function setUp(): void
     {
@@ -24,12 +22,14 @@ class AppleJwtStructFactoryTest extends \Mockery\Adapter\Phpunit\MockeryTestCase
 
     public function testIfCreateJwtPayloadFromTokenReturnsExpectedJsonPayload(): void
     {
+        $date = new DateTimeImmutable();
+
         $this->assertEquals(
             new JwtPayload(
                 'https://appleid.apple.com',
-                'com.acme.app',
-                1591622611,
-                1591622011,
+                ['com.acme.app'],
+                $date,
+                $date,
                 'foo.bar.baz',
                 'qGzMhtsfTCom-bl1PJYLHk',
                 'foo@privaterelay.appleid.com',
@@ -39,51 +39,26 @@ class AppleJwtStructFactoryTest extends \Mockery\Adapter\Phpunit\MockeryTestCase
                 true
             ),
             $this->appleJwtStructFactory->createJwtPayloadFromToken(
-                new Token(
-                    [
+                new Token\Plain(
+                    new Token\DataSet([
                         'kid' => 'eXaunmL',
                         'alg' => 'RS256',
-                    ],
-                    [
-                        'iss'              => new EqualsTo('iss', 'https://appleid.apple.com'),
-                        'aud'              => new EqualsTo('aud', 'com.acme.app'),
-                        'exp'              => new EqualsTo('exp', 1591622611),
-                        'iat'              => new EqualsTo('iat', 1591622011),
-                        'sub'              => new EqualsTo('sub', 'foo.bar.baz'),
-                        'c_hash'           => new EqualsTo('c_hash', 'qGzMhtsfTCom-bl1PJYLHk'),
-                        'email'            => new EqualsTo('email', 'foo@privaterelay.appleid.com'),
-                        'email_verified'   => new EqualsTo('email_verified', 'true'),
-                        'is_private_email' => new EqualsTo('is_private_email', 'true'),
-                        'auth_time'        => new EqualsTo('auth_time', 1591622011),
-                        'nonce_supported'  => new EqualsTo('nonce_supported', true),
-                    ]
+                    ], ''),
+                    new Token\DataSet([
+                        'iss' => 'https://appleid.apple.com',
+                        'aud' => ['com.acme.app'],
+                        'exp' => $date,
+                        'iat' => $date,
+                        'sub' => 'foo.bar.baz',
+                        'c_hash' => 'qGzMhtsfTCom-bl1PJYLHk',
+                        'email' => 'foo@privaterelay.appleid.com',
+                        'email_verified' => 'true',
+                        'is_private_email' => 'true',
+                        'auth_time' => 1591622011,
+                        'nonce_supported' => true,
+                    ], ''),
+                    Token\Signature::fromEmptyData(),
                 )
-            )
-        );
-    }
-
-    public function testIfCreateJwtPayloadFromTokenThrowsMissingClaimExceptionWhenAnyClaimIsMissing(): void
-    {
-        $this->expectExceptionMessage('Requested claim is not configured');
-        $this->expectException(MissingClaimException::class);
-        $this->appleJwtStructFactory->createJwtPayloadFromToken(
-            new Token(
-                [
-                    'kid' => 'eXaunmL',
-                    'alg' => 'RS256',
-                ],
-                [
-                    'iss'              => new EqualsTo('iss', 'https://appleid.apple.com'),
-                    'aud'              => new EqualsTo('aud', 'com.acme.app'),
-                    'exp'              => new EqualsTo('exp', 1591622611),
-                    'iat'              => new EqualsTo('iat', 1591622011),
-                    'sub'              => new EqualsTo('sub', 'foo.bar.baz'),
-                    'email'            => new EqualsTo('email', 'foo@privaterelay.appleid.com'),
-                    'email_verified'   => new EqualsTo('email_verified', 'true'),
-                    'is_private_email' => new EqualsTo('is_private_email', 'true'),
-                    'auth_time'        => new EqualsTo('auth_time', 1591622011),
-                    'nonce_supported'  => new EqualsTo('nonce_supported', true),
-                ]
             )
         );
     }

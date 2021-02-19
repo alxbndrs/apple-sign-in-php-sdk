@@ -1,8 +1,11 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Azimo\Apple\Auth\Jwt;
 
 use Azimo\Apple\Api\AppleApiClient;
+use Azimo\Apple\Api\AppleApiClientInterface;
 use Azimo\Apple\Api\Exception as ApiException;
 use Azimo\Apple\Api\Response\JsonWebKeySet;
 use Azimo\Apple\Auth\Exception;
@@ -12,44 +15,36 @@ use OutOfBoundsException;
 use phpseclib\Crypt\RSA;
 use phpseclib\Math\BigInteger;
 
-class JwtVerifier
+final class JwtVerifier
 {
-    /**
-     * @var AppleApiClient
-     */
-    private $client;
+    private AppleApiClientInterface $client;
+    private RSA $rsa;
+    private JWT\Signer $signer;
+    private JWT\Validator $validator;
 
-    /**
-     * @var RSA
-     */
-    private $rsa;
-
-    /**
-     * @var JWT\Signer
-     */
-    private $signer;
-
-    public function __construct(AppleApiClient $client, RSA $rsa, JWT\Signer $signer)
+    public function __construct(AppleApiClientInterface $client, JWT\Validator $validator, RSA $rsa, JWT\Signer $signer)
     {
         $this->client = $client;
         $this->rsa = $rsa;
         $this->signer = $signer;
+        $this->validator = $validator;
     }
 
     /**
      * @throws Exception\InvalidCryptographicAlgorithmException
      * @throws Exception\KeysFetchingFailedException
-     * @throws Exception\NotSignedTokenException
      */
     public function verify(JWT\Token $jwt): bool
     {
         $this->loadRsaKey($this->getAuthKey($jwt));
 
-        try {
-            return $jwt->verify($this->signer, $this->rsa->getPublicKey());
-        } catch (BadMethodCallException $exception) {
-            throw  new Exception\NotSignedTokenException($exception->getMessage(), $exception->getCode(), $exception);
-        }
+        return $this->validator->validate(
+            $jwt,
+            new JWT\Validation\Constraint\SignedWith(
+                $this->signer,
+                JWT\Signer\Key\InMemory::plainText($this->rsa->getPublicKey())
+            )
+        );
     }
 
     /**
@@ -69,7 +64,7 @@ class JwtVerifier
         }
 
         try {
-            $cryptographicAlgorithm = $jwt->getHeader('kid');
+            $cryptographicAlgorithm = $jwt->headers()->get('kid');
             $authKey = $authKeys->getByCryptographicAlgorithm($cryptographicAlgorithm);
         } catch (OutOfBoundsException | ApiException\UnsupportedCryptographicAlgorithmException $exception) {
             throw new Exception\InvalidCryptographicAlgorithmException(
